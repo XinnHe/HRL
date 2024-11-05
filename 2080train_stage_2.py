@@ -225,7 +225,7 @@ def main():
 
     # ----------------------  TRAINVAL  ----------------------
     global best_miou, best_FBiou, best_epoch, keep_epoch, val_num
-    global best_name, grow_name, all_name, latest_name,all_branch_name, best_class_iou
+    global best_name, grow_name, all_name, latest_name, best_class_iou
 
     best_miou = 0.
     best_FBiou = 0.
@@ -243,7 +243,7 @@ def main():
     best_name = args.snapshot_path + 'best.pth'
     grow_name = args.snapshot_path + 'grow.txt'
     all_name = args.snapshot_path + 'all.txt'
-    all_branch_name = args.snapshot_path + 'all_branch.txt'
+    
 
     for epoch in range(args.start_epoch, args.epochs): #epoch12
         if keep_epoch == args.stop_interval:
@@ -275,9 +275,7 @@ def main():
 
             with open(all_name, 'a') as f:
                 f.write('[{},miou:{:.4f}, fbIou:{:.4f}, recall:{:.4f}, precision:{:.4f},]\n'.format(epoch+1, mIoU, fbIou, recall, precision))
-            with open(all_branch_name, 'a') as f:
-                f.write('[{},miou---Branch_0:{:.4f}, Branch_1:{:.4f}, Branch_2:{:.4f}, Branch_3:{:.4f},Branch_4:{:.4f}]\n'.format(epoch+1, mIou_all[0], mIou_all[1], mIou_all[2], mIou_all[3],mIou_all[4]))
-
+            
 
         # save model for <testing> and <fine-tuning>
             if mIoU > best_miou:
@@ -449,10 +447,7 @@ def train(train_loader, val_loader, model, optimizer,transformer_optimizer, epoc
                        sub_epoch_name)
             with open(all_name, 'a') as f:
                 f.write('[{}_{},miou:{:.4f}, fbIou:{:.4f}, recall:{:.4f}, precision:{:.4f},]\n'.format(epoch, tmp_num, mIoU, fbIou, recall, precision))
-            with open(all_branch_name, 'a') as f:
-                f.write(
-                    '[{}_{},miou---Branch_0:{:.4f}, Branch_1:{:.4f}, Branch_2:{:.4f}, Branch_3:{:.4f},Branch_4:{:.4f}]\n'.format(
-                        epoch, tmp_num, mIou_all[0], mIou_all[1], mIou_all[2], mIou_all[3], mIou_all[4]))
+            
 
             if mIoU > best_miou:
                 best_miou, best_epoch, best_class_iou, best_FBiou = mIoU, epoch+(1/args.sub_freq)*tmp_num, class_miou, fbIou
@@ -492,21 +487,6 @@ def validate(val_loader, model,writer):
     intersection_meter = AverageMeter()
     union_meter = AverageMeter()
     target_meter = AverageMeter()
-    intersection_meter1 = AverageMeter()
-    union_meter1 = AverageMeter()
-    target_meter1 = AverageMeter()
-
-    intersection_meter2 = AverageMeter()
-    union_meter2 = AverageMeter()
-    target_meter2 = AverageMeter()
-
-    intersection_meter3 = AverageMeter()
-    union_meter3 = AverageMeter()
-    target_meter3 = AverageMeter()
-
-    intersection_meter4 = AverageMeter()
-    union_meter4 = AverageMeter()
-    target_meter4 = AverageMeter()
 
     split_gap = len(val_loader.dataset.list)
     test_num = 1000  # 20000
@@ -514,22 +494,6 @@ def validate(val_loader, model,writer):
     class_intersection_meter = [0] * split_gap
     class_union_meter = [0] * split_gap
     class_target_meter = [0] * split_gap
-
-    class_intersection_meter1 = [0] * split_gap
-    class_union_meter1 = [0] * split_gap
-    class_target_meter1 = [0] * split_gap
-
-    class_intersection_meter2 = [0] * split_gap
-    class_union_meter2 = [0] * split_gap
-    class_target_meter2 = [0] * split_gap
-
-    class_intersection_meter3 = [0] * split_gap
-    class_union_meter3 = [0] * split_gap
-    class_target_meter3 = [0] * split_gap
-
-    class_intersection_meter4 = [0] * split_gap
-    class_union_meter4 = [0] * split_gap
-    class_target_meter4 = [0] * split_gap
 
     if args.manual_seed is not None and args.fix_random_seed_val:
         setup_seed(args.manual_seed, args.seed_deterministic)
