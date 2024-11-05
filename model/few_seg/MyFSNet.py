@@ -20,15 +20,13 @@ from collections import OrderedDict
 
 
 def Cor_Map(query_feat, supp_feat_list, mask_list):
-    # 支持分支经过mask和layer4的输出final_supp_list
-    # query branch 经过layer4的输出query_feat
     corr_query_mask_list = []
     cosine_eps = 1e-7
     for i, tmp_supp_feat in enumerate(supp_feat_list):
         resize_size = tmp_supp_feat.size(2)  ##8,2048,64,64
         tmp_mask = F.interpolate(mask_list[i], size=(resize_size, resize_size), mode='nearest')
 
-        tmp_supp_feat_4 = tmp_supp_feat * tmp_mask  # 再来经过mask帅选一遍
+        tmp_supp_feat_4 = tmp_supp_feat * tmp_mask  
         q = query_feat  # 8,256,64,64
         s = tmp_supp_feat_4
         bsize, ch_sz, sp_sz, _ = q.size()[:]
@@ -147,11 +145,8 @@ class OneModel(nn.Module):
         self.backbone = args.backbone
         self.base_class_num = args.base_class_num
         if self.pretrained:
-            BaseNet = BBaseNet(args)  # '/private/5-code/MyFewShot_res50/initmodel/PSPNet/{}/split{}/{}/best.pth
+            BaseNet = BBaseNet(args)  # 
             weight_path ='/private/5-code/Base_FS_504_1_2/initmodel/BaseNet/{}/{}/split{}/best.pth'.format(args.dataset,args.backbone,args.split)
-            # '/private/5-code/Base_FS_504_1_2/initmodel/BaseNet/{}/{}/split{}/best.pth'.format(
-            #args.dataset, args.backbone, args.split) '/private/5-code/Base_FS_504_1_2/initmodel/BaseNet/{}/{}/split{}/best.pth'.format(args.dataset,args.backbone,args.split)
-            # 'E:\\5-code\Base_FS_504_1_1\initmodel\BaseNet\iSAID\\resnet50\split0/best.pth'
             new_param = torch.load(weight_path, map_location=torch.device('cpu'))['state_dict']
             print('load <base> weights from: {}'.format(weight_path))
             for name, parameter in BaseNet.named_parameters():
