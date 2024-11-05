@@ -146,7 +146,7 @@ class OneModel(nn.Module):
         self.base_class_num = args.base_class_num
         if self.pretrained:
             BaseNet = BBaseNet(args)  # 
-            weight_path ='/private/5-code/Base_FS_504_1_2/initmodel/BaseNet/{}/{}/split{}/best.pth'.format(args.dataset,args.backbone,args.split)
+            weight_path ='./initmodel/BaseNet/{}/{}/split{}/best.pth'.format(args.dataset,args.backbone,args.split)
             new_param = torch.load(weight_path, map_location=torch.device('cpu'))['state_dict']
             print('load <base> weights from: {}'.format(weight_path))
             for name, parameter in BaseNet.named_parameters():
@@ -399,7 +399,7 @@ class OneModel(nn.Module):
                     main_loss_all = main_loss_all + aux_main_loss
 
                     act_map = prob#[:, 1]  # 8,512,512,===8,1,512,512
-                    alpha = self.GAP(act_map)  #.unsqueeze(1) 8,1,1,1 前景占整个image的比例
+                    alpha = self.GAP(act_map)  #
                     mask_y = (y == 1).float().unsqueeze(1)
                     alpha_1 = self.GAP(mask_y)  # r
                     beta = (alpha - alpha_1) ** 2
