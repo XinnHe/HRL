@@ -1,3 +1,3 @@
-# HCL
+# HRL
 few shot semantic segmentation
-Hierarchical Correlation Learning
+Hierarchical Relation Learning
