@@ -148,7 +148,7 @@ class OneModel(nn.Module):
         self.base_class_num = args.base_class_num
         if self.pretrained:
             BaseNet = BBaseNet(args)  # '/private/5-code/MyFewShot_res50/initmodel/PSPNet/{}/split{}/{}/best.pth
-            weight_path ='E:/4-code/Base_FS_504_1_2/initmodel/BaseNet/{}/{}/split{}/best.pth'.format(args.dataset,args.backbone,args.split)
+            weight_path ='/private/5-code/Base_FS_504_1_2/initmodel/BaseNet/{}/{}/split{}/best.pth'.format(args.dataset,args.backbone,args.split)
             # '/private/5-code/Base_FS_504_1_2/initmodel/BaseNet/{}/{}/split{}/best.pth'.format(
             #args.dataset, args.backbone, args.split) '/private/5-code/Base_FS_504_1_2/initmodel/BaseNet/{}/{}/split{}/best.pth'.format(args.dataset,args.backbone,args.split)
             # 'E:\\5-code\Base_FS_504_1_1\initmodel\BaseNet\iSAID\\resnet50\split0/best.pth'
