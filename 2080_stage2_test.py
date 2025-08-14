@@ -230,11 +230,11 @@ def main():
     seed_array = np.random.randint(0,1000,val_num) 
 
     start_time = time.time()
-    branch_num=1
-    FBIoU_array = np.zeros((branch_num,val_num))
-    mIoU_array = np.zeros((branch_num,val_num))
-    pIoU_array = np.zeros((branch_num,val_num))
-    class_array = np.zeros([branch_num,val_num, len(val_data.list)])
+   
+    FBIoU_array = np.zeros((1,val_num))
+    mIoU_array = np.zeros((1,val_num))
+    pIoU_array = np.zeros((1,val_num))
+    class_array = np.zeros([1,val_num, len(val_data.list)])
 
     txt_root = 'SAMexp/{}/test_result/'.format(args.arch)
     check_makedirs(txt_root)
@@ -259,21 +259,20 @@ def main():
     logger.info('{} {} split{} {} shot'.format(args.arch, args.backbone, args.split, args.shot) + '\n')
     logger.info('Seed0: {}'.format(val_manual_seed))
     logger.info('Seed:  {}\n'.format(seed_array))
-    for b_id in range(branch_num):
-        logger.info('Branch {}: '.format(b_id))
-        logger.info('mIoU:  {}'.format(np.round(mIoU_array[b_id], 4)))
-        logger.info('FBIoU: {}'.format(np.round(FBIoU_array[b_id], 4)))
-        logger.info('pIoU:  {}'.format(np.round(pIoU_array[b_id], 4)))
-        logger.info('-'*43)
-        logger.info('Best_Seed_m: {} \t Best_Seed_F: {} \t Best_Seed_p: {}'.format(seed_array[mIoU_array[b_id].argmax()], seed_array[FBIoU_array[b_id].argmax()], seed_array[pIoU_array[b_id].argmax()]))
-        logger.info('Best_mIoU: {:.4f} \t Best_FBIoU: {:.4f} \t Best_pIoU: {:.4f}'.format(mIoU_array[b_id].max(), FBIoU_array[b_id].max(), pIoU_array[b_id].max()))
-        logger.info('Mean_mIoU: {:.4f} \t Mean_FBIoU: {:.4f} \t Mean_pIoU: {:.4f}'.format(mIoU_array[b_id].mean(), FBIoU_array[b_id].mean(), pIoU_array[b_id].mean()))
+    
+    logger.info('mIoU:  {}'.format(np.round(mIoU_array, 4)))
+    logger.info('FBIoU: {}'.format(np.round(FBIoU_array, 4)))
+    logger.info('pIoU:  {}'.format(np.round(pIoU_array, 4)))
+    logger.info('-'*43)
+    logger.info('Best_Seed_m: {} \t Best_Seed_F: {} \t Best_Seed_p: {}'.format(seed_array[mIoU_array.argmax()], seed_array[FBIoU_array.argmax()], seed_array[pIoU_array.argmax()]))
+    logger.info('Best_mIoU: {:.4f} \t Best_FBIoU: {:.4f} \t Best_pIoU: {:.4f}'.format(mIoU_array.max(), FBIoU_array.max(), pIoU_array.max()))
+    logger.info('Mean_mIoU: {:.4f} \t Mean_FBIoU: {:.4f} \t Mean_pIoU: {:.4f}'.format(mIoU_array.mean(), FBIoU_array.mean(), pIoU_array.mean()))
 
-        for id in range(len(val_data.list)):
-            logger.info('{}\t'.format(val_data.list[id]))
-        logger.info('\n')
-        for id in range(len(val_data.list)):
-            logger.info('{:.2f}\t'.format(class_marray[b_id][id]*100))
+    for id in range(len(val_data.list)):
+        logger.info('{}\t'.format(val_data.list[id]))
+    logger.info('\n')
+    for id in range(len(val_data.list)):
+        logger.info('{:.2f}\t'.format(class_marray[b_id][id]*100))
 
     
     
