@@ -2,6 +2,7 @@
 few shot semantic segmentation
 Hierarchical Relation Learning
 
+我还没有完全整理好
 
 ## Weights of HRL
 https://github.com/XinnHe/HRL/releases/tag/weights
