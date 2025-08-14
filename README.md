@@ -9,7 +9,7 @@ https://github.com/XinnHe/HRL/releases/tag/weights
 
 
 
-@ARTICLE{11007733,
+> @ARTICLE{11007733,
   author={He, Xin and Liu, Yun and Zhou, Yong and Ding, Henghui and Zhao, Jiaqi and Liu, Bing and Jiang, Xudong},
   journal={IEEE Transactions on Geoscience and Remote Sensing}, 
   title={Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote Sensing Images}, 
