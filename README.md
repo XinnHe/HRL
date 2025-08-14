@@ -8,7 +8,7 @@ https://github.com/XinnHe/HRL/releases/tag/weights
 
 
 
-
+## Citation
 > @ARTICLE{11007733,
   author={He, Xin and Liu, Yun and Zhou, Yong and Ding, Henghui and Zhao, Jiaqi and Liu, Bing and Jiang, Xudong},
   journal={IEEE Transactions on Geoscience and Remote Sensing}, 
