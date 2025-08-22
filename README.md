@@ -3,7 +3,7 @@ HRL-Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote 
 
 ##Train
  
- `python ` 
+ `python python train.py --shot 1 --split 0 --dataset iSAID --backbone vgg ` 
 
 
 ##Test
