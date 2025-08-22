@@ -1,12 +1,29 @@
 # Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote Sensing Images
 HRL-Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote Sensing Images
 
-##Train
+## Installation
+
+## Training base-learners 
+Option 1: training from scratch
+
+train_base.sh
+
+Option 2: loading the trained models
+
+Put the provided models in the '/initmodel'
+
+https://github.com/XinnHe/HRL/releases/tag/initmodel%2FBaseNet%2Fisaid
+https://github.com/XinnHe/HRL/releases/tag/initmodel%2FBaseNet%2Fdlrsd
+https://github.com/XinnHe/HRL/releases/tag/initmodel%2FBaseNet%2FLoveDA
+
+
+## Train
  
  `python python train.py --shot 1 --split 0 --dataset iSAID --backbone vgg ` 
 
 
-##Test
+## Test
+
 
 ### Weights of HRL
 https://github.com/XinnHe/HRL/releases/tag/weights
