@@ -4,7 +4,7 @@ HRL-Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote 
 
 ## Training base-learners 
 Option 1: training from scratch
-Download the pre-trained backbones from 
+Download the pre-trained backbones from [resnet50_v2.pth+vgg16_bn.pth](https://github.com/XinnHe/HRL/releases/tag/initmodel)
 train_base.sh
 
 Option 2: loading the trained models
