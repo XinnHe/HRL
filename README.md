@@ -2,7 +2,8 @@
 HRL-Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote Sensing Images
 
 ##Train
- (`python `) 
+ 
+ `python ` 
 
 
 ##Test
