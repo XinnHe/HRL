@@ -147,11 +147,8 @@ class OneModel(nn.Module):
         self.backbone = args.backbone
         self.base_class_num = args.base_class_num
         if self.pretrained:
-            BaseNet = BBaseNet(args)  # '/private/5-code/MyFewShot_res50/initmodel/PSPNet/{}/split{}/{}/best.pth
-            weight_path ='/private/5-code/Base_FS_504_1_2/initmodel/BaseNet/{}/{}/split{}/best.pth'.format(args.dataset,args.backbone,args.split)
-            # '/private/5-code/Base_FS_504_1_2/initmodel/BaseNet/{}/{}/split{}/best.pth'.format(
-            #args.dataset, args.backbone, args.split) '/private/5-code/Base_FS_504_1_2/initmodel/BaseNet/{}/{}/split{}/best.pth'.format(args.dataset,args.backbone,args.split)
-            # 'E:\\5-code\Base_FS_504_1_1\initmodel\BaseNet\iSAID\\resnet50\split0/best.pth'
+            BaseNet = BBaseNet(args)  
+            weight_path ='./initmodel/BaseNet/{}/{}_split{}_best.pth'.format(args.dataset,args.backbone,args.split)
             new_param = torch.load(weight_path, map_location=torch.device('cpu'))['state_dict']
             print('load <base> weights from: {}'.format(weight_path))
             for name, parameter in BaseNet.named_parameters():
@@ -382,7 +379,7 @@ class OneModel(nn.Module):
 
                 act_map = nn.Softmax(1)(output_fin)  # 8,2,512,512
                 act_map = act_map[:, 1]  # 8,512,512,===8,1,512,512
-                alpha = self.GAP(act_map.unsqueeze(1))  # 8,1,1,1 前景占整个image的比例
+                alpha = self.GAP(act_map.unsqueeze(1))  # 
                 main_loss = self.criterion(output_fin, y.long())
 
                 mask_y = (y == 1).float().unsqueeze(1)
@@ -404,7 +401,7 @@ class OneModel(nn.Module):
                     main_loss_all = main_loss_all + aux_main_loss
 
                     act_map = prob#[:, 1]  # 8,512,512,===8,1,512,512
-                    alpha = self.GAP(act_map)  #.unsqueeze(1) 8,1,1,1 前景占整个image的比例
+                    alpha = self.GAP(act_map)  #.unsqueeze(1) 
                     mask_y = (y == 1).float().unsqueeze(1)
                     alpha_1 = self.GAP(mask_y)  # r
                     beta = (alpha - alpha_1) ** 2
