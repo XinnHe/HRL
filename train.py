@@ -34,7 +34,7 @@ from util.util import AverageMeter,  intersectionAndUnionGPU, get_model_para_num
 
 cv2.ocl.setUseOpenCL(False)
 cv2.setNumThreads(0)
-os.environ["CUDA_VISIBLE_DEVICES"] = '0,1'
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 torch.autograd.set_detect_anomaly(True)
 
 def get_parser():
@@ -157,7 +157,7 @@ def main_process():
 
 def main():
     global device_ids, device
-    device_ids = [0,1]
+    device_ids = [0]
     device = torch.device("cuda:0")
 
     global args, logger
@@ -645,3 +645,4 @@ def validate(val_loader, model,writer):
 
 if __name__ == '__main__':
     main()
+
