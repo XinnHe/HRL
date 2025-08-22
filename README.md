@@ -10,7 +10,7 @@ train_base.sh
 
 Option 2: loading the trained models
 
-Put the provided models in the '/initmodel'
+Put the provided models in the `/initmodel`
 
 https://github.com/XinnHe/HRL/releases/tag/initmodel%2FBaseNet%2Fisaid
 https://github.com/XinnHe/HRL/releases/tag/initmodel%2FBaseNet%2Fdlrsd
