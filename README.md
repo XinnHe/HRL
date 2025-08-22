@@ -1,22 +1,24 @@
-# HRL
-few shot semantic segmentation
-Hierarchical Relation Learning
+# Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote Sensing Images
+HRL-Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote Sensing Images
 
-我还没有完全整理好
+##Train
+ (`python `) 
 
-## Weights of HRL
+
+##Test
+
+### Weights of HRL
 https://github.com/XinnHe/HRL/releases/tag/weights
 
 
 
 ## Citation
-> @ARTICLE{11007733,
+> @article{he2025hierarchical,
+  title={Hierarchical Relation Learning for Few-shot Semantic Segmentation in Remote Sensing Images},
   author={He, Xin and Liu, Yun and Zhou, Yong and Ding, Henghui and Zhao, Jiaqi and Liu, Bing and Jiang, Xudong},
-  journal={IEEE Transactions on Geoscience and Remote Sensing}, 
-  title={Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote Sensing Images}, 
+  journal={IEEE Transactions on Geoscience and Remote Sensing},
   year={2025},
   volume={63},
-  number={},
-  pages={1-15},
-  keywords={Prototypes;Semantics;Feature extraction;Remote sensing;Semantic segmentation;Transformers;Training;Visualization;Shape;Data mining;Few-shot segmentation;few-shot semantic segmentation (FSS);hierarchical relation learning (HRL);remote sensing},
-  doi={10.1109/TGRS.2025.3571738}}
+  pages={4410615},
+  publisher={IEEE}
+}
