@@ -33,7 +33,7 @@ resume_path ="./weights/best_dlrsd_res50_split0_1shot.pth"
 
 We provide the weights of our model for direct use and reproduction.  
 - [Download Model Weights](https://github.com/XinnHe/HRL/releases/tag/weights)  
-
+https://github.com/XinnHe/HRL/releases/tag/weights
 
 ## 📌  **NOTE**
 If you don’t feel like running HRL yourself, just leave me a message or drop me an email at `xhe@cumt.edu.cn`. I’ll be happy to **share the HRL visualization results** with you, based on **your visualization style** (blue, red, yellow, green, mask overlays, boundary highlighting, ......).
