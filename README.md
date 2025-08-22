@@ -28,8 +28,8 @@ https://github.com/XinnHe/HRL/releases/tag/initmodel%2FBaseNet%2FLoveDA
 ### Weights of HRL
 https://github.com/XinnHe/HRL/releases/tag/weights
 
-## NOTE
-If you don’t feel like running HRL yourself, just leave me a message or drop me an email at `xhe@cumt.edu.cn`. I’ll be happy to ** share the HRL visualization results** with you, based on **your visualization style** (blue,red,yellow,green,mask overlays, boundary highlighting).
+## **NOTE**
+If you don’t feel like running HRL yourself, just leave me a message or drop me an email at `xhe@cumt.edu.cn`. I’ll be happy to **share the HRL visualization results** with you, based on **your visualization style** (blue,red,yellow,green,mask overlays, boundary highlighting).
 
 ## Citation
 > @article{he2025hierarchical,
