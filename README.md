@@ -42,7 +42,7 @@ resume_path ="./weights/best_dlrsd_res50_split0_1shot.pth"
 - `test.py` is run **10 independent times**, and the **average result** is reported in the paper.  
 - *This setting follows [R2Net](https://github.com/chunbolang/R2Net)
 - 
-### 3. DLRSID Dataset
+### 3. DLRSD Dataset
 - **5 random seeds** are used.  
 - All test samples are evaluated for each seed.  
 - The **average result** is reported in the paper.
