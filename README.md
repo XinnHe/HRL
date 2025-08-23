@@ -29,6 +29,22 @@ https://github.com/XinnHe/HRL/releases/tag/initmodel%2FBaseNet%2FLoveDA
 During **testing**, please manually set the path of the weights via the `resume_path` argument, for example:  
 resume_path ="./weights/best_dlrsd_res50_split0_1shot.pth"
 
+
+### 1. LoveDA Dataset
+- **5 random seeds** are used.  
+- For each seed, **1000 support-query samples** are randomly selected.  
+- `test.py` is run **5 independent times**, and the **average result** is reported in the paper.  
+
+### 2. iSAID Dataset
+- **5 random seeds** are used.  
+- For each seed, **1000 support-query samples** are randomly selected.  
+- `test.py` is run **10 independent times**, and the **average result** is reported in the paper.  
+
+### 3. DLRSID Dataset
+- **5 random seeds** are used.  
+- All test samples are evaluated for each seed.  
+- The **average result** is reported in the paper. 
+
 ### Weights of HRL
 
 We provide the weights of our model for direct use and reproduction.  
