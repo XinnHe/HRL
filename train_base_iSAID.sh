@@ -16,7 +16,7 @@ for net in resnet50 vgg  #  resnet50 resnet50
 do
         for split in 0 1 2   # 0 1 2
         do
-                CUDA_VISIBLE_DEVICES=${GPU_ID} python -u train_base_iSAID.py \
+                CUDA_VISIBLE_DEVICES=${GPU_ID} python -u train_base.py \
                 --arch=${arch} \
                 --split=${split} \
                 --backbone=${net} \
