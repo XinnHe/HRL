@@ -30,20 +30,24 @@ During **testing**, please manually set the path of the weights via the `resume_
 resume_path ="./weights/best_dlrsd_res50_split0_1shot.pth"
 
 
-### 1. LoveDA Dataset
+### 1. LoveDA Dataset 
 - **5 random seeds** are used.  
 - For each seed, **1000 support-query samples** are randomly selected.  
-- `test.py` is run **5 independent times**, and the **average result** is reported in the paper.  
+- `test.py` is run **5 independent times**, and the **average resul Not
+- This setting follows [DMNet](https://github.com/chunbolang/R2Net)
 
 ### 2. iSAID Dataset
 - **5 random seeds** are used.  
 - For each seed, **1000 support-query samples** are randomly selected.  
 - `test.py` is run **10 independent times**, and the **average result** is reported in the paper.  
-
+- *This setting follows [R2Net](https://github.com/chunbolang/R2Net)
+- 
 ### 3. DLRSID Dataset
 - **5 random seeds** are used.  
 - All test samples are evaluated for each seed.  
-- The **average result** is reported in the paper. 
+- The **average result** is reported in the paper.
+- - *This setting follows [SCCNet](https://github.com/linhanwang/SCCNet)
+
 
 ### Weights of HRL
 
