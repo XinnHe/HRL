@@ -37,7 +37,7 @@ from util.util import AverageMeter,  intersectionAndUnionGPU, get_model_para_num
 
 cv2.ocl.setUseOpenCL(False)
 cv2.setNumThreads(0)
-os.environ["CUDA_VISIBLE_DEVICES"] = '0,1'
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 torch.autograd.set_detect_anomaly(True)
 
 def get_parser():
@@ -76,12 +76,7 @@ def get_model(args,device):
 
     model = eval(args.arch).OneModel(args, cls_type='Base')
     #optimizer = model.get_optim(model, args.lr_decay, LR=args.base_lr)#SGD
-    '''
-    param_dicts = [
-        {"params": [p for n, p in model.named_parameters() if "transformer" not in n
-                    and p.requires_grad]},
-    ]
-    '''
+
     param_dicts = [
         {"params": [p for n, p in model.named_parameters() if "transformer" not in n
                     and p.requires_grad]},
@@ -126,8 +121,7 @@ def get_model(args,device):
     # Resume
     #args.resume=True
     if args.resume: #None
-        resume_path ='/private/5-code/Base_FS_521_4_15/SAMexp/MyFSNet/iSAID/vgg/split0/1shot/2024-06-26-09-17-37-625625/best.pth'
-        #resume_path = "/private/5-code/Base_FS_521_4_9/SAMexp/MyFSNet/iSAID/resnet50/split0/5shot/2024-06-02-00-06-24-346119/best.pth"
+        resume_path ='h'
         #osp.join(args.snapshot_path, args.resume)
         if os.path.isfile(resume_path):
             if main_process():
@@ -167,7 +161,7 @@ def main_process():
 
 def main():
     global device_ids, device
-    device_ids = [0,1]
+    device_ids = [0]
     device = torch.device("cuda:0")
 
     global args, logger
@@ -242,7 +236,7 @@ def main():
 
     # ----------------------  TRAINVAL  ----------------------
     global best_miou, best_FBiou, best_epoch, keep_epoch, val_num,super_best_miou
-    global best_name, grow_name, all_name, latest_name,all_branch_name, best_class_iou
+    global best_name, grow_name, all_name, latest_name, best_class_iou
 
     best_miou = 0.
     super_best_miou=0.
@@ -261,7 +255,6 @@ def main():
     best_name = args.snapshot_path + 'best_'
     grow_name = args.snapshot_path + 'grow.txt'
     all_name = args.snapshot_path + 'all.txt'
-    all_branch_name = args.snapshot_path + 'all_branch.txt'
 
     for epoch in range(args.start_epoch, args.epochs): #epoch12
         if keep_epoch == args.stop_interval:
@@ -287,17 +280,14 @@ def main():
 
         # -----------------------  VAL  -----------------------
         if args.evaluate and (epoch + 1)% args.val_freq == 0: #val_freq=1
-            _,fbIou, _,_, mIoU,_ , recall, precision, class_miou,mIou_all = validate(val_loader, model, writer)
-            branch_id=mIou_all.index(max(mIou_all))
-            supermax_mIou=max(mIou_all)
+            _,fbIou, _,_, mIoU,_ , recall, precision, class_miou = validate(val_loader, model, writer)
+          
             torch.cuda.empty_cache()
             val_num += 1
 
             with open(all_name, 'a') as f:
                 f.write('[{},miou:{:.4f}, fbIou:{:.4f}, recall:{:.4f}, precision:{:.4f},]\n'.format(epoch+1, mIoU, fbIou, recall, precision))
-            with open(all_branch_name, 'a') as f:
-                f.write('[{},miou---Branch_0:{:.4f}, Branch_1:{:.4f}, Branch_2:{:.4f}, Branch_3:{:.4f},Branch_4:{:.4f}]\n'.format(epoch+1, mIou_all[0], mIou_all[1], mIou_all[2], mIou_all[3],mIou_all[4]))
-
+           
 
             # save model for <testing> and <fine-tuning>
             if mIoU > best_miou:
@@ -309,17 +299,6 @@ def main():
                 logger.info('Saving checkpoint to: ' + best_namename + '  miou: {:.4f}'.format(best_miou))
                 #if osp.exists(best_name):
                 #    os.remove(best_name)    
-                torch.save({'epoch': epoch+1, 'state_dict': model.state_dict(), 'optimizer': optimizer.state_dict()}, best_namename)  
-                
-            if supermax_mIou > super_best_miou:
-                super_best_miou, best_epoch, best_class_iou, best_FBiou = supermax_mIou, epoch, class_miou, fbIou
-                #keep_epoch = 0
-                with open(grow_name, 'a') as f:
-                    f.write('Best_epoch:{}_branch_id{} , Best_miou:{:.4f} , fbIou:{:.4f} , recall:{:.4f}, precision:{:.4f}, \n'.format(epoch+1,branch_id, supermax_mIou, fbIou, recall, precision)) 
-                best_namename=best_name+str(super_best_miou*100)+'_branch_id_'+str(branch_id)+'.pth'
-                logger.info('Saving checkpoint to: ' + best_namename + '  super_best_miou: {:.4f}'.format(super_best_miou))
-                #if osp.exists(best_name):
-                #    os.remove(best_name) 
                 torch.save({'epoch': epoch+1, 'state_dict': model.state_dict(), 'optimizer': optimizer.state_dict()}, best_namename) 
 
     with open(args.snapshot_path + 'class.txt', 'a') as f:
@@ -440,37 +419,6 @@ def train(train_loader, val_loader, model, optimizer,transformer_optimizer, epoc
         remain_time = '{:02d}:{:02d}:{:02d}'.format(int(t_h), int(t_m), int(t_s))
 
         if (i + 1) % args.print_freq == 0 and main_process():
-            # output_masks = output#torch.argmax(torch.softmax(output, dim=1), dim=1, keepdim=True)
-            '''
-            masks_sam_vis = output.cpu().numpy().astype(np.int16)
-
-
-            grid_imgs_q = imutils.tensorboard_image_supp(imgs=input.clone())
-            # grid_imgs_s = imutils.tensorboard_image_supp(imgs=s_input[:, 0, :, :, :].clone())
-            grid_q_mask = imutils.tensorboard_q_mask(imgs=input.clone(), cam=corr_query_mask.detach())  # prompt_mask
-
-            # grid_q_cam_fg = imutils.tensorboard_q_mask(imgs=input.clone(), cam=cam[:, 1, :, :].unsqueeze(1).detach())
-            # grid_gts1 = imutils.tensorboard_label(labels=gts1)
-            # grid_GT_label_s = imutils.tensorboard_label(labels=s_mask[:, 0, :, :].cpu().numpy().astype(np.int16))
-            grid_GT_label_q = imutils.tensorboard_label(labels=target_q.cpu().numpy().astype(np.int16))
-            # grid_preds_q = imutils.tensorboard_label(labels=preds)
-            # grid_gts_aux = imutils.tensorboard_label(labels=gts_aux)
-
-            grid_preds_SAM_q = imutils.tensorboard_label(labels=masks_sam_vis)
-            writer.add_image("train/images_q", grid_imgs_q, global_step=current_iter)
-            # writer.add_image("train/images_s", grid_imgs_s, global_step=i)
-            writer.add_image("train/query_mask", grid_q_mask, global_step=current_iter)
-
-            # writer.add_image("train/query_cam_fg", grid_q_cam_fg, global_step=i)
-            #writer.add_image("cam/valid_cams", grid_cam_q, global_step=current_iter)
-            # writer.add_image("cam/gts_aux", grid_gts_aux, global_step=current_iter)
-            # writer.add_image("cam/valid_cams_aux", grid_cam_aux_q, global_step=i)
-            writer.add_image("train/GT_label_q", grid_GT_label_q, global_step=current_iter)
-            # writer.add_image("evl/GT_label_s", grid_GT_label_s, global_step=i)
-            # writer.add_image("evl/grid_preds_output_q", grid_preds_output_q, global_step=i)
-            # writer.add_image("evl/grid_preds_HQ_q", grid_preds_HQ_q, global_step=i)
-            writer.add_image("train/grid_preds_SAM_q", grid_preds_SAM_q, global_step=current_iter)
-            '''
             writer.add_scalar('info/lr', cur_lr, current_iter)
             writer.add_scalars('train/MainLoss', {"MainLoss": main_loss_meter.val}, global_step=current_iter)
             writer.add_scalars('train/AuxLoss', {"AuxLoss": aux_loss_meter_1.val}, global_step=current_iter)
@@ -501,9 +449,8 @@ def train(train_loader, val_loader, model, optimizer,transformer_optimizer, epoc
         
         # -----------------------  SubEpoch VAL  -----------------------
         if args.evaluate and args.SubEpoch_val and ((epoch + 1)%args.val_freq==0) and (i in torch.arange(1,args.sub_freq)*round(len(train_loader)/args.sub_freq)): # max_epoch<=100时进行half_epoch Val
-            _,fbIou, _,_, mIoU,_ , recall, precision, class_miou,mIou_all = validate(val_loader, model,writer)
-            branch_id=mIou_all.index(max(mIou_all))
-            supermax_mIou=max(mIou_all)
+            _,fbIou, _,_, mIoU,_ , recall, precision, class_miou = validate(val_loader, model,writer)
+            
             torch.cuda.empty_cache()
             model.train()
             if args.fix_bn:
@@ -517,10 +464,6 @@ def train(train_loader, val_loader, model, optimizer,transformer_optimizer, epoc
             #           sub_epoch_name)
             with open(all_name, 'a') as f:
                 f.write('[{}_{},miou:{:.4f}, fbIou:{:.4f}, recall:{:.4f}, precision:{:.4f},]\n'.format(epoch, tmp_num, mIoU, fbIou, recall, precision))
-            with open(all_branch_name, 'a') as f:
-                f.write(
-                    '[{}_{},miou---Branch_0:{:.4f}, Branch_1:{:.4f}, Branch_2:{:.4f}, Branch_3:{:.4f},Branch_4:{:.4f}]\n'.format(
-                        epoch, tmp_num, mIou_all[0], mIou_all[1], mIou_all[2], mIou_all[3], mIou_all[4]))
 
             if mIoU > best_miou:
                 best_miou, best_epoch, best_class_iou, best_FBiou = mIoU, epoch+(1/args.sub_freq)*tmp_num, class_miou, fbIou
@@ -532,17 +475,8 @@ def train(train_loader, val_loader, model, optimizer,transformer_optimizer, epoc
                 #if osp.exists(best_name):
                 #    os.remove(best_name) 
                 torch.save({'epoch': epoch+1, 'state_dict': model.state_dict(), 'optimizer': optimizer.state_dict()}, best_namename) 
+            
                 
-            if supermax_mIou > super_best_miou:
-                super_best_miou, best_epoch, best_class_iou, best_FBiou = supermax_mIou, epoch+(1/args.sub_freq)*tmp_num, class_miou, fbIou
-                #keep_epoch = 0
-                with open(grow_name, 'a') as f:
-                    f.write('Best_epoch:{}_{}_branch_id{} , Best_miou:{:.4f} , fbIou:{:.4f} , recall:{:.4f}, precision:{:.4f}, \n'.format(epoch, tmp_num,branch_id, supermax_mIou, fbIou, recall, precision)) 
-                best_namename=best_name+str(super_best_miou*100)+'branch_id_'+str(branch_id)+'.pth'
-                logger.info('Saving checkpoint to: ' + best_namename + '  super_best_miou: {:.4f}'.format(super_best_miou))
-                #if osp.exists(best_name):
-                #    os.remove(best_name) 
-                torch.save({'epoch': epoch+1, 'state_dict': model.state_dict(), 'optimizer': optimizer.state_dict()}, best_namename) 
             
     if hasattr(model, 'out_data'):
         with open(args.snapshot_path + 'out_data.txt', 'a') as f:
@@ -571,21 +505,6 @@ def validate(val_loader, model,writer):
     intersection_meter = AverageMeter()
     union_meter = AverageMeter()
     target_meter = AverageMeter()
-    intersection_meter1 = AverageMeter()
-    union_meter1 = AverageMeter()
-    target_meter1 = AverageMeter()
-
-    intersection_meter2 = AverageMeter()
-    union_meter2 = AverageMeter()
-    target_meter2 = AverageMeter()
-
-    intersection_meter3 = AverageMeter()
-    union_meter3 = AverageMeter()
-    target_meter3 = AverageMeter()
-
-    intersection_meter4 = AverageMeter()
-    union_meter4 = AverageMeter()
-    target_meter4 = AverageMeter()
 
     #split_gap = len(val_loader.dataset.list)
     split_gap = len(val_loader.dataset.class_ids)
@@ -595,22 +514,6 @@ def validate(val_loader, model,writer):
     class_intersection_meter = [0] * split_gap
     class_union_meter = [0] * split_gap
     class_target_meter = [0] * split_gap
-
-    class_intersection_meter1 = [0] * split_gap
-    class_union_meter1 = [0] * split_gap
-    class_target_meter1 = [0] * split_gap
-
-    class_intersection_meter2 = [0] * split_gap
-    class_union_meter2 = [0] * split_gap
-    class_target_meter2 = [0] * split_gap
-
-    class_intersection_meter3 = [0] * split_gap
-    class_union_meter3 = [0] * split_gap
-    class_target_meter3 = [0] * split_gap
-
-    class_intersection_meter4 = [0] * split_gap
-    class_union_meter4 = [0] * split_gap
-    class_target_meter4 = [0] * split_gap
 
     if args.manual_seed is not None and args.fix_random_seed_val:
         setup_seed(args.manual_seed, args.seed_deterministic)
@@ -682,65 +585,7 @@ def validate(val_loader, model,writer):
             recall = np.mean(intersection_meter.val[1:] / (target_meter.val[1:]+ 1e-10))
             precision = np.mean(intersection_meter.val[1:] /(union_meter.val[1:] - target_meter.val[1:] + intersection_meter.val[1:] + 1e-10) )
             Iou = sum(intersection_meter.val[1:]) / (sum(union_meter.val[1:]) + 1e-10)
-            # --------------------------------1111111111111111------------------------
-            output1 = F.interpolate(output_fin_list[0], size=target.size()[1:], mode='bilinear',
-                                    align_corners=True).float()
-            #output1 = output1.max(1)[1]  # 1,512,512
-            output1 = nn.Sigmoid()(output1).squeeze(1)
-            output1 = torch.where(output1> 0.5, 1, 0)
-            intersection1, union1, new_target1 = intersectionAndUnionGPU(output1, target, 2, args.ignore_label)
-            intersection1, union1, new_target1 = intersection1.cpu().numpy(), union1.cpu().numpy(), new_target1.cpu().numpy()
-            intersection_meter1.update(intersection1), union_meter1.update(union1), target_meter1.update(new_target1)
-
-            tmp_id = subcls.cpu().numpy()[0]
-            class_intersection_meter1[tmp_id] += intersection1[1]
-            class_union_meter1[tmp_id] += union1[1]
-            class_target_meter1[tmp_id] += new_target1[1]
-
-            # --------------------------------22222222222------------------------
-            output2 = F.interpolate(output_fin_list[1], size=target.size()[1:], mode='bilinear',
-                                    align_corners=True).float()
-            #output2 = output2.max(1)[1]  # 1,512,512
-            output2 = nn.Sigmoid()(output2).squeeze(1)
-            output2 = torch.where(output2> 0.5, 1, 0)
-            intersection2, union2, new_target2 = intersectionAndUnionGPU(output2, target, 2, args.ignore_label)
-            intersection2, union2, new_target2 = intersection2.cpu().numpy(), union2.cpu().numpy(), new_target2.cpu().numpy()
-            intersection_meter2.update(intersection2), union_meter2.update(union2), target_meter2.update(new_target2)
-
-            tmp_id = subcls.cpu().numpy()[0]
-            class_intersection_meter2[tmp_id] += intersection2[1]
-            class_union_meter2[tmp_id] += union2[1]
-            class_target_meter2[tmp_id] += new_target2[1]
-
-            # --------------------------------33333333333333333333------------------------
-            output3 = F.interpolate(output_fin_list[2], size=target.size()[1:], mode='bilinear',
-                                    align_corners=True).float()
-            #output3 = output3.max(1)[1]  # 1,512,512
-            output3 = nn.Sigmoid()(output3).squeeze(1)
-            output3 = torch.where(output3> 0.5, 1, 0)
-            intersection3, union3, new_target3 = intersectionAndUnionGPU(output3, target, 2, args.ignore_label)
-            intersection3, union3, new_target3 = intersection3.cpu().numpy(), union3.cpu().numpy(), new_target3.cpu().numpy()
-            intersection_meter3.update(intersection3), union_meter3.update(union3), target_meter3.update(new_target3)
-
-            tmp_id = subcls.cpu().numpy()[0]
-            class_intersection_meter3[tmp_id] += intersection3[1]
-            class_union_meter3[tmp_id] += union3[1]
-            class_target_meter3[tmp_id] += new_target3[1]
-
-            # --------------------------------444444444444444444-----------------------
-            output4 = F.interpolate(output_fin_list[3], size=target.size()[1:], mode='bilinear',
-                                    align_corners=True).float()
-            #output4 = output4.max(1)[1]  # 1,512,512
-            output4 = nn.Sigmoid()(output4).squeeze(1)
-            output4 = torch.where(output4> 0.5, 1, 0)
-            intersection4, union4, new_target4 = intersectionAndUnionGPU(output4, target, 2, args.ignore_label)
-            intersection4, union4, new_target4 = intersection4.cpu().numpy(), union4.cpu().numpy(), new_target4.cpu().numpy()
-            intersection_meter4.update(intersection4), union_meter4.update(union4), target_meter4.update(new_target4)
-
-            tmp_id = subcls.cpu().numpy()[0]
-            class_intersection_meter4[tmp_id] += intersection4[1]
-            class_union_meter4[tmp_id] += union4[1]
-            class_target_meter4[tmp_id] += new_target4[1]
+            
 
             loss_meter.update(loss.item(), input.size(0))
             batch_time.update(time.time() - end)
@@ -761,302 +606,64 @@ def validate(val_loader, model,writer):
                                                             precision=precision,
                                                             Iou=Iou))
     val_time = time.time()-val_start
-    mIou_all = []
-    iou_class0 = intersection_meter.sum / (union_meter.sum + 1e-10)
-    accuracy_class0 = intersection_meter.sum / (target_meter.sum + 1e-10)
-    mIoU0 = np.mean(iou_class0)
-    mAcc0 = np.mean(accuracy_class0)
-    allAcc0 = sum(intersection_meter.sum) / (sum(target_meter.sum) + 1e-10)
+    
+    iou_class = intersection_meter.sum / (union_meter.sum + 1e-10)
+    accuracy_class = intersection_meter.sum / (target_meter.sum + 1e-10)
+    mIoU = np.mean(iou_class)
+    mAcc = np.mean(accuracy_class)
+    allAcc = sum(intersection_meter.sum) / (sum(target_meter.sum) + 1e-10)
 
 
-    class_iou_class0 = []
-    class_miou0 = 0
-    class_recall_class0 = []
-    class_mrecall0 = 0
-    class_precisoin_class0 = []
-    class_mprecision0 = 0
+    class_iou_class = []
+    class_miou = 0
+    class_recall_class = []
+    class_mrecall = 0
+    class_precisoin_class = []
+    class_mprecision = 0
 
     for i in range(len(class_intersection_meter)):
         class_iou = class_intersection_meter[i]/(class_union_meter[i]+ 1e-10)
-        class_iou_class0.append(class_iou)
-        class_miou0 += class_iou
+        class_iou_class.append(class_iou)
+        class_miou += class_iou
 
         class_recall = class_intersection_meter[i]/(class_target_meter[i]+ 1e-10)
-        class_recall_class0.append(class_recall)
-        class_mrecall0 += class_recall
+        class_recall_class.append(class_recall)
+        class_mrecall += class_recall
 
         class_precision = class_intersection_meter[i]/(class_union_meter[i] - class_target_meter[i] + class_intersection_meter[i]+ 1e-10)
-        class_precisoin_class0.append(class_precision)
-        class_mprecision0 += class_precision
+        class_precisoin_class.append(class_precision)
+        class_mprecision += class_precision
 
-    class_mrecall0 = class_mrecall0*1.0 / len(class_intersection_meter)
-    class_miou0 = class_miou0*1.0 / len(class_intersection_meter)
-    class_mprecision0 = class_mprecision0*1.0 / len(class_intersection_meter)
+    class_mrecall = class_mrecall*1.0 / len(class_intersection_meter)
+    class_miou = class_miou*1.0 / len(class_intersection_meter)
+    class_mprecision = class_mprecision*1.0 / len(class_intersection_meter)
 
 
-    logger.info('mean IoU---Val result: mIoU {:.4f}.'.format(class_miou0))
-    logger.info('mean recall---Val result: mrecall {:.4f}.'.format(class_mrecall0))
-    logger.info('mean precisoin---Val result: mprecisoin {:.4f}.'.format(class_mprecision0))
+    logger.info('mean IoU---Val result: mIoU {:.4f}.'.format(class_miou))
+    logger.info('mean recall---Val result: mrecall {:.4f}.'.format(class_mrecall))
+    logger.info('mean precisoin---Val result: mprecisoin {:.4f}.'.format(class_mprecision))
 
     for i in range(split_gap):
         logger.info('Class_{}: \t Result: iou {:.4f}. \t recall {:.4f}. \t precision {:.4f}. \t {}'.format(i+1, \
-                        class_iou_class0[i], class_recall_class0[i], class_precisoin_class0[i],\
+                        class_iou_class[i], class_recall_class[i], class_precisoin_class[i],\
                          val_loader.dataset.class_name[val_loader.dataset.class_ids[i]]))
 
 
 
-    logger.info('FBIoU---Val result: mIoU/mAcc/allAcc {:.4f}/{:.4f}/{:.4f}.'.format(mIoU0, mAcc0, allAcc0))
-    for i in range(2):
-        logger.info('Class_{} Result: iou/accuracy {:.4f}/{:.4f}.'.format(i, iou_class0[i], accuracy_class0[i]))
-
-    mIou_all.append(class_miou0)
-
-
-
-    logger.info('------------------------------Branch----1111111111111-------------------------------')
-    intersection_meter=intersection_meter1
-    union_meter=union_meter1
-    target_meter=target_meter1
-    class_intersection_meter=class_intersection_meter1
-    class_union_meter=class_union_meter1
-    class_target_meter=class_target_meter1
-
-    iou_class = intersection_meter.sum / (union_meter.sum + 1e-10)
-    accuracy_class = intersection_meter.sum / (target_meter.sum + 1e-10)
-    mIoU = np.mean(iou_class)
-    mAcc = np.mean(accuracy_class)
-    allAcc = sum(intersection_meter.sum) / (sum(target_meter.sum) + 1e-10)
-
-    class_iou_class = []
-    class_miou = 0
-    class_recall_class = []
-    class_mrecall = 0
-    class_precisoin_class = []
-    class_mprecision = 0
-
-    for i in range(len(class_intersection_meter)):
-        class_iou = class_intersection_meter[i] / (class_union_meter[i] + 1e-10)
-        class_iou_class.append(class_iou)
-        class_miou += class_iou
-
-        class_recall = class_intersection_meter[i] / (class_target_meter[i] + 1e-10)
-        class_recall_class.append(class_recall)
-        class_mrecall += class_recall
-
-        class_precision = class_intersection_meter[i] / (
-                    class_union_meter[i] - class_target_meter[i] + class_intersection_meter[i] + 1e-10)
-        class_precisoin_class.append(class_precision)
-        class_mprecision += class_precision
-
-    class_mrecall = class_mrecall * 1.0 / len(class_intersection_meter)
-    class_miou = class_miou * 1.0 / len(class_intersection_meter)
-    class_mprecision = class_mprecision * 1.0 / len(class_intersection_meter)
-
-    logger.info('mean IoU---Val result: mIoU {:.4f}.'.format(class_miou))
-    logger.info('mean recall---Val result: mrecall {:.4f}.'.format(class_mrecall))
-    logger.info('mean precisoin---Val result: mprecisoin {:.4f}.'.format(class_mprecision))
-
-    for i in range(split_gap):
-        logger.info('Class_{}: \t Result: iou {:.4f}. \t recall {:.4f}. \t precision {:.4f}. \t {}'.format(i + 1, \
-                                                                                                           class_iou_class[
-                                                                                                               i],
-                                                                                                           class_recall_class[
-                                                                                                               i],
-                                                                                                           class_precisoin_class[
-                                                                                                               i], \
-                                                                                                           val_loader.dataset.class_name[
-                                                                                                               val_loader.dataset.class_ids[
-                                                                                                                   i]]))
     logger.info('FBIoU---Val result: mIoU/mAcc/allAcc {:.4f}/{:.4f}/{:.4f}.'.format(mIoU, mAcc, allAcc))
     for i in range(2):
         logger.info('Class_{} Result: iou/accuracy {:.4f}/{:.4f}.'.format(i, iou_class[i], accuracy_class[i]))
 
-    mIou_all.append(class_miou)
-    logger.info('------------------------------Branch----22222222222222-------------------------------')
-    intersection_meter = intersection_meter2
-    union_meter = union_meter2
-    target_meter = target_meter2
-    class_intersection_meter = class_intersection_meter2
-    class_union_meter = class_union_meter2
-    class_target_meter = class_target_meter2
 
-
-    iou_class = intersection_meter.sum / (union_meter.sum + 1e-10)
-    accuracy_class = intersection_meter.sum / (target_meter.sum + 1e-10)
-    mIoU = np.mean(iou_class)
-    mAcc = np.mean(accuracy_class)
-    allAcc = sum(intersection_meter.sum) / (sum(target_meter.sum) + 1e-10)
-
-    class_iou_class = []
-    class_miou = 0
-    class_recall_class = []
-    class_mrecall = 0
-    class_precisoin_class = []
-    class_mprecision = 0
-
-    for i in range(len(class_intersection_meter)):
-        class_iou = class_intersection_meter[i] / (class_union_meter[i] + 1e-10)
-        class_iou_class.append(class_iou)
-        class_miou += class_iou
-
-        class_recall = class_intersection_meter[i] / (class_target_meter[i] + 1e-10)
-        class_recall_class.append(class_recall)
-        class_mrecall += class_recall
-
-        class_precision = class_intersection_meter[i] / (
-                class_union_meter[i] - class_target_meter[i] + class_intersection_meter[i] + 1e-10)
-        class_precisoin_class.append(class_precision)
-        class_mprecision += class_precision
-
-    class_mrecall = class_mrecall * 1.0 / len(class_intersection_meter)
-    class_miou = class_miou * 1.0 / len(class_intersection_meter)
-    class_mprecision = class_mprecision * 1.0 / len(class_intersection_meter)
-
-    logger.info('mean IoU---Val result: mIoU {:.4f}.'.format(class_miou))
-    logger.info('mean recall---Val result: mrecall {:.4f}.'.format(class_mrecall))
-    logger.info('mean precisoin---Val result: mprecisoin {:.4f}.'.format(class_mprecision))
-
-    for i in range(split_gap):
-        logger.info('Class_{}: \t Result: iou {:.4f}. \t recall {:.4f}. \t precision {:.4f}. \t {}'.format(i + 1, \
-                                                                                                           class_iou_class[
-                                                                                                               i],
-                                                                                                           class_recall_class[
-                                                                                                               i],
-                                                                                                           class_precisoin_class[
-                                                                                                               i], \
-                                                                                                           val_loader.dataset.class_name[
-                                                                                                               val_loader.dataset.class_ids[
-                                                                                                                   i]]))
-    logger.info('FBIoU---Val result: mIoU/mAcc/allAcc {:.4f}/{:.4f}/{:.4f}.'.format(mIoU, mAcc, allAcc))
-    for i in range(2):
-        logger.info('Class_{} Result: iou/accuracy {:.4f}/{:.4f}.'.format(i, iou_class[i], accuracy_class[i]))
-    mIou_all.append(class_miou)
-    logger.info('------------------------------Branch----33333333333333333333-------------------------------')
-    intersection_meter = intersection_meter3
-    union_meter = union_meter3
-    target_meter = target_meter3
-    class_intersection_meter = class_intersection_meter3
-    class_union_meter = class_union_meter3
-    class_target_meter = class_target_meter3
-
-
-    iou_class = intersection_meter.sum / (union_meter.sum + 1e-10)
-    accuracy_class = intersection_meter.sum / (target_meter.sum + 1e-10)
-    mIoU = np.mean(iou_class)
-    mAcc = np.mean(accuracy_class)
-    allAcc = sum(intersection_meter.sum) / (sum(target_meter.sum) + 1e-10)
-
-    class_iou_class = []
-    class_miou = 0
-    class_recall_class = []
-    class_mrecall = 0
-    class_precisoin_class = []
-    class_mprecision = 0
-
-    for i in range(len(class_intersection_meter)):
-        class_iou = class_intersection_meter[i] / (class_union_meter[i] + 1e-10)
-        class_iou_class.append(class_iou)
-        class_miou += class_iou
-
-        class_recall = class_intersection_meter[i] / (class_target_meter[i] + 1e-10)
-        class_recall_class.append(class_recall)
-        class_mrecall += class_recall
-
-        class_precision = class_intersection_meter[i] / (
-                class_union_meter[i] - class_target_meter[i] + class_intersection_meter[i] + 1e-10)
-        class_precisoin_class.append(class_precision)
-        class_mprecision += class_precision
-
-    class_mrecall = class_mrecall * 1.0 / len(class_intersection_meter)
-    class_miou = class_miou * 1.0 / len(class_intersection_meter)
-    class_mprecision = class_mprecision * 1.0 / len(class_intersection_meter)
-
-    logger.info('mean IoU---Val result: mIoU {:.4f}.'.format(class_miou))
-    logger.info('mean recall---Val result: mrecall {:.4f}.'.format(class_mrecall))
-    logger.info('mean precisoin---Val result: mprecisoin {:.4f}.'.format(class_mprecision))
-
-    for i in range(split_gap):
-        logger.info('Class_{}: \t Result: iou {:.4f}. \t recall {:.4f}. \t precision {:.4f}. \t {}'.format(i + 1, \
-                                                                                                           class_iou_class[
-                                                                                                               i],
-                                                                                                           class_recall_class[
-                                                                                                               i],
-                                                                                                           class_precisoin_class[
-                                                                                                               i], \
-                                                                                                           val_loader.dataset.class_name[
-                                                                                                               val_loader.dataset.class_ids[
-                                                                                                                   i]]))
-    logger.info('FBIoU---Val result: mIoU/mAcc/allAcc {:.4f}/{:.4f}/{:.4f}.'.format(mIoU, mAcc, allAcc))
-    for i in range(2):
-        logger.info('Class_{} Result: iou/accuracy {:.4f}/{:.4f}.'.format(i, iou_class[i], accuracy_class[i]))
-    mIou_all.append(class_miou)
-    logger.info('------------------------------Branch----4444444444444444444-------------------------------')
-    intersection_meter = intersection_meter4
-    union_meter = union_meter4
-    target_meter = target_meter4
-    class_intersection_meter = class_intersection_meter4
-    class_union_meter = class_union_meter4
-    class_target_meter = class_target_meter4
-
-    iou_class = intersection_meter.sum / (union_meter.sum + 1e-10)
-    accuracy_class = intersection_meter.sum / (target_meter.sum + 1e-10)
-    mIoU = np.mean(iou_class)
-    mAcc = np.mean(accuracy_class)
-    allAcc = sum(intersection_meter.sum) / (sum(target_meter.sum) + 1e-10)
-
-    class_iou_class = []
-    class_miou = 0
-    class_recall_class = []
-    class_mrecall = 0
-    class_precisoin_class = []
-    class_mprecision = 0
-
-    for i in range(len(class_intersection_meter)):
-        class_iou = class_intersection_meter[i] / (class_union_meter[i] + 1e-10)
-        class_iou_class.append(class_iou)
-        class_miou += class_iou
-
-        class_recall = class_intersection_meter[i] / (class_target_meter[i] + 1e-10)
-        class_recall_class.append(class_recall)
-        class_mrecall += class_recall
-
-        class_precision = class_intersection_meter[i] / (
-                class_union_meter[i] - class_target_meter[i] + class_intersection_meter[i] + 1e-10)
-        class_precisoin_class.append(class_precision)
-        class_mprecision += class_precision
-
-    class_mrecall = class_mrecall * 1.0 / len(class_intersection_meter)
-    class_miou = class_miou * 1.0 / len(class_intersection_meter)
-    class_mprecision = class_mprecision * 1.0 / len(class_intersection_meter)
-
-    logger.info('mean IoU---Val result: mIoU {:.4f}.'.format(class_miou))
-    logger.info('mean recall---Val result: mrecall {:.4f}.'.format(class_mrecall))
-    logger.info('mean precisoin---Val result: mprecisoin {:.4f}.'.format(class_mprecision))
-
-    for i in range(split_gap):
-        logger.info('Class_{}: \t Result: iou {:.4f}. \t recall {:.4f}. \t precision {:.4f}. \t {}'.format(i + 1, \
-                                                                                                           class_iou_class[
-                                                                                                               i],
-                                                                                                           class_recall_class[
-                                                                                                               i],
-                                                                                                           class_precisoin_class[
-                                                                                                               i], \
-                                                                                                          val_loader.dataset.class_name[
-                                                                                                               val_loader.dataset.class_ids[
-                                                                                                                   i]]))
-    logger.info('FBIoU---Val result: mIoU/mAcc/allAcc {:.4f}/{:.4f}/{:.4f}.'.format(mIoU, mAcc, allAcc))
-    for i in range(2):
-        logger.info('Class_{} Result: iou/accuracy {:.4f}/{:.4f}.'.format(i, iou_class[i], accuracy_class[i]))
-
-    mIou_all.append(class_miou)
 
     logger.info('<<<<<<<<<<<<<<<<< End Evaluation <<<<<<<<<<<<<<<<<')
 
     logger.info('total time: {:.4f}, avg inference time: {:.4f}, count: {}'.format(val_time, model_time.avg, test_num))
 
-    return loss_meter.avg, mIoU0, mAcc0, allAcc0, class_miou0, iou_class0[1], class_mrecall0, class_mprecision0, class_iou_class0,mIou_all
+    return loss_meter.avg, mIoU, mAcc, allAcc, class_miou, iou_class[1], class_mrecall, class_mprecision, class_iou_class
 
 
 if __name__ == '__main__':
     main()
+
 
