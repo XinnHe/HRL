@@ -27,7 +27,7 @@ from model.few_seg import MyFSNet
 # from model.workdir import
 from torch.nn import DataParallel
 
-from data.dataset import FSSDataset
+from dataset.dataset import FSSDataset
 from util import config
 from util.util import AverageMeter,  intersectionAndUnionGPU, get_model_para_number, setup_seed, get_logger, get_save_path, \
                                      fix_bn, check_makedirs,freeze_modules,lr_decay, Special_characters
@@ -1059,3 +1059,4 @@ def validate(val_loader, model,writer):
 
 if __name__ == '__main__':
     main()
+
