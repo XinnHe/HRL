@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader
 from data.pascal import DatasetPASCAL, BaseDatasetPASCAL
 from data.coco import DatasetCOCO
 from data.fss import DatasetFSS
-from data.isaid import DatasetISAID, BaseDatasetISAID
 from data.dlrsd import DatasetDLRSD, BaseDatasetDLRSD
 
 
@@ -16,16 +15,12 @@ class FSSDataset:
 
         cls.datasets = {
             'pascal': DatasetPASCAL,
-            'coco': DatasetCOCO,
             'fss': DatasetFSS,
-            'isaid': DatasetISAID,
             'dlrsd': DatasetDLRSD,
         }
         cls.basedatasets = {
             'pascal': BaseDatasetPASCAL,
-            'coco': DatasetCOCO,
             'fss': DatasetFSS,
-            'isaid': BaseDatasetISAID,
             'dlrsd': BaseDatasetDLRSD,
         }
 
@@ -62,3 +57,4 @@ class FSSDataset:
                                 num_workers=nworker)  # ,pin_memory=True,drop_last=True)
 
         return dataset, dataloader
+
