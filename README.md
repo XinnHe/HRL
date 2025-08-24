@@ -59,8 +59,7 @@ https://github.com/XinnHe/HRL/releases/tag/weights
 If you don’t feel like running HRL yourself, just leave me a message or drop me an email at **`xhe@cumt.edu.cn`**. I’ll be happy to **share the HRL visualization results** with you, based on **your visualization style** (blue, red, yellow, green, mask overlays, boundary highlighting, ......).
 
 ## 📌  **Contact**
-Let us engage in academic discussions on **intelligent interpretation of remote sensing images**. Feel free to connect me via WeChat:  
-**WeChat ID: HeHex000**
+Let us engage in academic discussions on **intelligent interpretation of remote sensing images**. Feel free to connect me via WeChat: **WeChat ID: HeHex000**
 
 ## Citation
 > @article{he2025hierarchical,
