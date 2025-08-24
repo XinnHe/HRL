@@ -1,4 +1,4 @@
-# Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote Sensing Images
+ # Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote Sensing Images
 HRL-Hierarchical Relation Learning for Few-Shot Semantic Segmentation in Remote Sensing Images
 
 
@@ -41,12 +41,12 @@ resume_path ="./weights/best_dlrsd_res50_split0_1shot.pth"
 - For each seed, **1000 support-query samples** are randomly selected.  
 - `test.py` is run **10 independent times**, and the **average result** is reported in the paper.  
 - *This setting follows [R2Net](https://github.com/chunbolang/R2Net)
-- 
+  
 ### 3. DLRSD Dataset
 - **5 random seeds** are used.  
 - All test samples are evaluated for each seed.  
 - The **average result** is reported in the paper.
-- - *This setting follows [SCCNet](https://github.com/linhanwang/SCCNet)
+- *This setting follows [SCCNet](https://github.com/linhanwang/SCCNet)
 
 
 ### Weights of HRL
